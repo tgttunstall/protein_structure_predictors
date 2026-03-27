@@ -1,6 +1,6 @@
 # Protein Structure Predictor Wrappers
 
-Python wrappers for submitting protein mutation jobs to mCSM, mCSM-PPI, mCSM-LIG, mCSM-NA, Dynamut, Dynamut2, and Foldx, then fetching and formatting results.
+Python wrappers for submitting protein mutation jobs to mCSM, mCSM-PPI, mCSM-lig, mCSM-NA, Dynamut, Dynamut2, and Foldx, then fetching and formatting results.
 
 ## Setup
 
@@ -20,7 +20,7 @@ Project directories (created already): `input/`, `input/pdb/`, `output/`, `resul
 Base columns (all tools): `mutation_id`, `gene`, `pdb_id`, `chain`, `residue_number`, `wt_aa`, `mut_aa`.
 
 Additional columns per tool:
-- mCSM-LIG: `ligand_id`, `wt_affinity` (nM)
+- mCSM-lig: `ligand_id`, `wt_affinity` (nM)
 
 ## Usage
 
