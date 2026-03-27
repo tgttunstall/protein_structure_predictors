@@ -38,6 +38,11 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - Fetch: `PYTHONPATH=src python -m psp.mcsm_lig fetch --jobs output/mcsm_lig_jobs.csv --results-dir results/mcsm_lig`
 - Format: `PYTHONPATH=src python -m psp.mcsm_lig format --results-dir results/mcsm_lig --output output/mcsm_lig_results.csv`
 
+### mCSM-NA
+- Submit grouped by PDB and nucleic acid type: `PYTHONPATH=src python -m psp.mcsm_na submit --input input/mcsm_na_muts.csv --output output/mcsm_na_jobs.csv --pdb-dir input/pdb`
+- Fetch: `PYTHONPATH=src python -m psp.mcsm_na fetch --jobs output/mcsm_na_jobs.csv --results-dir results/mcsm_na`
+- Format: `PYTHONPATH=src python -m psp.mcsm_na format --results-dir results/mcsm_na --output output/mcsm_na_results.csv`
+
 ### DynaMut
 - Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input input/dynamut_2xb7.csv --output output/dynamut_jobs.csv --pdb-dir input/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.dynamut fetch --jobs output/dynamut_jobs.csv --results-dir results/dynamut`
@@ -48,3 +53,4 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - Fetch steps skip existing result files unless `--force` is set.
 - Format steps pull the first table from each HTML result; if the upstream layout changes, adjust parsers accordingly.
 - For DynaMut, `mutation_id` is just the mutation (e.g., `F1174C`); the submitted mutation-list file has no header and one mutation per line.
+- For mCSM-NA, include `nucleic_acid_type` (dsDNA/ssDNA/RNA) in the input CSV; jobs are grouped by PDB ID and nucleic acid type. The mutation-list sent to the server has no header and one mutation per line.
