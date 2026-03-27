@@ -61,9 +61,13 @@ def download_pdb(pdb_id: str, pdb_dir: str) -> str:
     return str(path)
 
 
-def write_rows(path: str, fieldnames: Iterable[str], rows: Iterable[Dict[str, str]]) -> None:
+def write_rows(
+    path: str, fieldnames: Iterable[str], rows: Iterable[Dict[str, str]], append: bool = False
+) -> None:
     path_obj = Path(path)
     ensure_dir(str(path_obj.parent))
+    if not append and path_obj.exists():
+        path_obj.unlink()
     exists = path_obj.exists()
     with open(path_obj, "a", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
