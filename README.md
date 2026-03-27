@@ -24,17 +24,17 @@ Additional columns per tool:
 Run commands with `PYTHONPATH=src` (or install the package).
 
 ### mCSM
-- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input input/mutations.csv --output output/mcsm_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input input/mcsm_muts.csv --output output/mcsm_jobs.csv --pdb-dir input/pdb`
 - Fetch results: `PYTHONPATH=src python -m psp.mcsm fetch --jobs output/mcsm_jobs.csv --results-dir results/mcsm`
 - Format to CSV: `PYTHONPATH=src python -m psp.mcsm format --results-dir results/mcsm --output output/mcsm_results.csv`
 
 ### mCSM-LIG
-- Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input input/mutations_lig.csv --output output/mcsm_lig_jobs.csv --pdb-dir input/pdb`
+- Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input input/mcsm_lig_muts.csv --output output/mcsm_lig_jobs.csv --pdb-dir input/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.mcsm_lig fetch --jobs output/mcsm_lig_jobs.csv --results-dir results/mcsm_lig`
 - Format: `PYTHONPATH=src python -m psp.mcsm_lig format --results-dir results/mcsm_lig --output output/mcsm_lig_results.csv`
 
 ### DynaMut
-- Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input input/mutations.csv --output output/dynamut_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input input/dynamut_2xb7.csv --output output/dynamut_jobs.csv --pdb-dir input/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.dynamut fetch --jobs output/dynamut_jobs.csv --results-dir results/dynamut`
 - Format: `PYTHONPATH=src python -m psp.dynamut format --results-dir results/dynamut --output output/dynamut_results.csv`
 
@@ -42,3 +42,4 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - PDB files are cached in `input/pdb/`; they are fetched from RCSB if missing.
 - Fetch steps skip existing result files unless `--force` is set.
 - Format steps pull the first table from each HTML result; if the upstream layout changes, adjust parsers accordingly.
+- For DynaMut, `mutation_id` is just the mutation (e.g., `F1174C`); the submitted mutation-list file has no header and one mutation per line.

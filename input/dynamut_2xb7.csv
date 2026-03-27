@@ -1,0 +1,5 @@
+mutation_id,gene,pdb_id,chain,residue_number,wt_aa,mut_aa
+F1174C,ALK,2XB7,A,1174,F,C
+F1174I,ALK,2XB7,A,1174,F,I
+G1128A,ALK,2XB7,A,1128,G,A
+I1171N,ALK,2XB7,A,1171,I,N
