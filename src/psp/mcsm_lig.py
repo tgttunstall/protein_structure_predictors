@@ -5,6 +5,7 @@ from typing import Dict, Iterable, List
 from urllib.parse import urljoin
 
 import pandas as pd
+from bs4 import BeautifulSoup
 
 from .common import (
     INPUT_FIELDS,
@@ -91,17 +92,66 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
     frames: List[pd.DataFrame] = []
     for path in Path(results_dir).glob("mcsm_lig_*.html"):
         html = path.read_text(encoding="utf-8", errors="ignore")
+
+        parsed = False
+
+        # First try tables
         try:
             tables = pd.read_html(html)
+            if tables:
+                df = tables[0]
+                df.insert(0, "source_file", str(path))
+                frames.append(df)
+                parsed = True
         except ValueError:
+            pass
+
+        if parsed:
             continue
-        if not tables:
-            continue
-        df = tables[0]
-        df.insert(0, "source_file", str(path))
-        frames.append(df)
+
+        # Fallback: manual parse of key fields
+        soup = BeautifulSoup(html, "html.parser")
+        text_sections = {}
+        for i_tag in soup.find_all("i"):
+            label = (i_tag.get_text(strip=True).rstrip(":") or "").lower()
+            b_tag = i_tag.find_next("b")
+            if label and b_tag:
+                text_sections[label] = b_tag.get_text(strip=True)
+
+        # Predicted affinity change line
+        pac_value = None
+        pac_outcome = None
+        font = soup.find("font", string=lambda s: s and "log(affinity" in s)
+        if font:
+            text = font.get_text(" ", strip=True)
+            # Example: "-2.056 log(affinity fold change) - Destabilizing"
+            parts = text.split("log(")
+            if parts:
+                try:
+                    pac_value = float(parts[0].strip().split()[0])
+                except Exception:
+                    pac_value = None
+            if "-" in text:
+                pac_outcome = text.split("-")[-1].strip()
+
+        record = {
+            "source_file": str(path),
+            "predicted_affinity_change_log_fold": pac_value,
+            "outcome": pac_outcome,
+            "wild_type": text_sections.get("wild-type"),
+            "position": text_sections.get("position"),
+            "mutant_type": text_sections.get("mutant-type"),
+            "chain": text_sections.get("chain"),
+            "ligand_id": text_sections.get("ligand id"),
+            "distance_to_ligand_ang": text_sections.get("distance to ligand"),
+            "duet_stability_change": text_sections.get("duet stability change"),
+        }
+
+        if any(v is not None for v in record.values() if v != str(path)):
+            frames.append(pd.DataFrame([record]))
+
     if not frames:
-        raise RuntimeError("No mCSM-LIG result tables found to format")
+        raise RuntimeError("No mCSM-LIG result data found to format")
     combined = pd.concat(frames, ignore_index=True)
     combined.to_csv(formatted_csv, index=False)
 

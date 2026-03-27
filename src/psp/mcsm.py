@@ -117,15 +117,18 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
                     download_url = urljoin(row["job_url"], href)
                     break
 
-        # Fallback if not found
+        # Fallback patterns if not found in HTML
         if not download_url:
-            download_url = f"https://biosig.lab.uq.edu.au/mcsm/get_results/{job_id}.txt"
+            download_url = f"https://biosig.lab.uq.edu.au/mcsm/get_results/st_{job_id}/{job_id}.txt"
+        alt_download_url = f"https://biosig.lab.uq.edu.au/mcsm/get_results/{job_id}.txt"
 
         target_txt = Path(results_dir) / f"mcsm_{job_id}.txt"
         if not target_txt.exists() or force:
             try:
                 log(f"Fetching mCSM job {job_id} (text download)")
                 resp_txt = session.get(download_url, timeout=60)
+                if (not resp_txt.ok or not resp_txt.content) and alt_download_url:
+                    resp_txt = session.get(alt_download_url, timeout=60)
                 if resp_txt.ok and resp_txt.content:
                     path_txt = (
                         unique_path(results_dir, f"mcsm_{job_id}", ".txt")

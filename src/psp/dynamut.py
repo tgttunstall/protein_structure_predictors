@@ -1,6 +1,7 @@
 import argparse
 import csv
 import os
+import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 from urllib.parse import urljoin
@@ -77,7 +78,9 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
     write_rows(output_csv, INPUT_FIELDS + ["job_id", "job_url"], records)
 
 
-def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
+def fetch_jobs(
+    output_csv: str, results_dir: str, force: bool = False, max_attempts: int = 5, wait_seconds: int = 30
+) -> None:
     with open(output_csv, newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         if "job_url" not in reader.fieldnames:
@@ -91,11 +94,27 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
         target = Path(results_dir) / f"dynamut_{job_id}.html"
         if target.exists() and not force:
             continue
-        log(f"Fetching DynaMut job {job_id}")
-        response = session.get(row["job_url"], timeout=60)
-        response.raise_for_status()
+
+        content = None
+        for attempt in range(1, max_attempts + 1):
+            log(f"Fetching DynaMut job {job_id} (attempt {attempt}/{max_attempts})")
+            response = session.get(row["job_url"], timeout=60)
+            response.raise_for_status()
+            text_lower = response.text.lower()
+            processing = "being processed" in text_lower or "processing" in text_lower
+            if processing and attempt < max_attempts:
+                log(f"Job {job_id} still processing; waiting {wait_seconds}s before retry")
+                time.sleep(wait_seconds)
+                continue
+            content = response.content
+            break
+
+        if content is None:
+            log(f"Failed to retrieve completed results for job {job_id}")
+            continue
+
         path = unique_path(results_dir, f"dynamut_{job_id}", ".html") if target.exists() and not force else target
-        save_binary(response.content, path)
+        save_binary(content, path)
 
 
 def format_results(results_dir: str, formatted_csv: str) -> None:
@@ -130,6 +149,8 @@ def build_parser() -> argparse.ArgumentParser:
     fetch_p.add_argument("--jobs", required=True, help="Job CSV from submit step")
     fetch_p.add_argument("--results-dir", default="results/dynamut", help="Directory to store HTML results")
     fetch_p.add_argument("--force", action="store_true", help="Overwrite existing result files")
+    fetch_p.add_argument("--max-attempts", type=int, default=5, help="Max fetch attempts when job is processing")
+    fetch_p.add_argument("--wait-seconds", type=int, default=30, help="Seconds to wait between attempts")
 
     format_p = sub.add_parser("format", help="Format downloaded results to CSV")
     format_p.add_argument("--results-dir", default="results/dynamut", help="Directory containing result HTML files")
@@ -145,7 +166,13 @@ def main(argv: Iterable[str] = None) -> None:
     if args.command == "submit":
         submit(args.input, args.output, args.pdb_dir)
     elif args.command == "fetch":
-        fetch_jobs(args.jobs, args.results_dir, force=args.force)
+        fetch_jobs(
+            args.jobs,
+            args.results_dir,
+            force=args.force,
+            max_attempts=args.max_attempts,
+            wait_seconds=args.wait_seconds,
+        )
     elif args.command == "format":
         format_results(args.results_dir, args.output)
     else:
