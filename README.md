@@ -2,6 +2,8 @@
 
 Python wrappers for submitting protein mutation jobs to mCSM, mCSM-LIG, and DynaMut, then fetching and formatting results.
 
+> Disclaimer: This repository is an experiment to migrate and repurpose code from my PhD analyses using LLM-assisted tooling. Outputs, wrappers, and workflows are provided “as-is” for exploratory use and may evolve rapidly.
+
 ## Setup
 
 ```
