@@ -30,9 +30,15 @@ def _group_rows(rows: List[Dict[str, str]]) -> Dict[Tuple[str, str], List[Dict[s
     for row in rows:
         na_type = row.get(NA_FIELD)
         if na_type is None:
+            # Tolerate stray whitespace in column name
+            for k in row.keys():
+                if k.strip() == NA_FIELD:
+                    na_type = row[k]
+                    break
+        if na_type is None:
             raise ValueError(f"Missing required column: {NA_FIELD}")
         key = (row["pdb_id"].strip(), na_type.strip())
-        grouped.setdefault(key, []).append(row)
+        grouped.setdefault(key, []).append({**row, NA_FIELD: na_type})
     return grouped
 
 
@@ -58,9 +64,11 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
             tmp_path = tmp.name
 
         try:
-            with open(pdb_path, "rb") as pdb_file, open(tmp_path, "rb") as mutation_file:
-                files = {"wild": pdb_file, "mutation_list": mutation_file}
-                data = {"na_type": na_type, "pred_type": "list"}
+            with open(tmp_path, "rb") as mutation_file:
+                files = {
+                    "mutation_list": ("mutation_list.txt", mutation_file, "text/plain"),
+                }
+                data = {"na_type": na_type, "pred_type": "list", "pdb_code": pdb_id}
                 response = session.post(SUBMIT_URL, data=data, files=files, timeout=60)
                 response.raise_for_status()
                 job_url_abs, job_id = extract_job_url_and_id(
@@ -76,7 +84,7 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
         for mutation in mutations:
             record = {
                 **{field: mutation[field] for field in INPUT_FIELDS},
-                NA_FIELD: mutation[NA_FIELD],
+                NA_FIELD: mutation.get(NA_FIELD) or mutation.get(NA_FIELD + " ") or mutation.get(NA_FIELD.strip(), ""),
                 "job_id": job_id,
                 "job_url": job_url_abs,
             }
