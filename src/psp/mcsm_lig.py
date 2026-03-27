@@ -124,9 +124,31 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
         text_sections = {}
         for i_tag in soup.find_all("i"):
             label = (i_tag.get_text(strip=True).rstrip(":") or "").lower()
+            if not label:
+                continue
+            value = None
+            # Prefer the immediate bold or font sibling/descendant
             b_tag = i_tag.find_next("b")
-            if label and b_tag:
-                text_sections[label] = b_tag.get_text(strip=True)
+            if b_tag:
+                value = b_tag.get_text(strip=True)
+            if not value:
+                font_tag = i_tag.find_next("font")
+                if font_tag:
+                    value = font_tag.get_text(strip=True)
+            if not value:
+                for sib in i_tag.next_siblings:
+                    if isinstance(sib, str):
+                        text_val = sib.strip()
+                        if text_val:
+                            value = text_val
+                            break
+                    else:
+                        text_val = sib.get_text(strip=True)
+                        if text_val:
+                            value = text_val
+                            break
+            if value:
+                text_sections[label] = value
 
         # Predicted affinity change line
         pac_value = None
