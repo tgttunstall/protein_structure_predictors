@@ -89,80 +89,40 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
     for row in rows:
         job_id = row.get("job_id") or Path(row["job_url"]).name
 
-        # Download HTML result page
+        # Download HTML result page only
         target_html = Path(results_dir) / f"mcsm_{job_id}.html"
-        html_content: Optional[bytes] = None
         if not target_html.exists() or force:
             log(f"Fetching mCSM job {job_id} (HTML)")
             response = session.get(row["job_url"], timeout=60)
             response.raise_for_status()
-            html_content = response.content
             path_html = (
                 unique_path(results_dir, f"mcsm_{job_id}", ".html")
                 if target_html.exists() and not force
                 else target_html
             )
-            save_binary(html_content, path_html)
-        else:
-            html_content = target_html.read_bytes()
-
-        # Try to locate direct result download link in the HTML
-        download_url = None
-        if html_content:
-            from bs4 import BeautifulSoup
-
-            soup = BeautifulSoup(html_content, "html.parser")
-            for a in soup.find_all("a", href=True):
-                href = a.get("href")
-                if href and "get_results" in href:
-                    download_url = urljoin(row["job_url"], href)
-                    break
-
-        # Fallback patterns if not found in HTML
-        if not download_url:
-            download_url = f"https://biosig.lab.uq.edu.au/mcsm/get_results/st_{job_id}/{job_id}.txt"
-        alt_download_url = f"https://biosig.lab.uq.edu.au/mcsm/get_results/{job_id}.txt"
-
-        target_txt = Path(results_dir) / f"mcsm_{job_id}.txt"
-        if not target_txt.exists() or force:
-            try:
-                log(f"Fetching mCSM job {job_id} (text download)")
-                resp_txt = session.get(download_url, timeout=60)
-                if (not resp_txt.ok or not resp_txt.content) and alt_download_url:
-                    resp_txt = session.get(alt_download_url, timeout=60)
-                if resp_txt.ok and resp_txt.content:
-                    path_txt = (
-                        unique_path(results_dir, f"mcsm_{job_id}", ".txt")
-                        if target_txt.exists() and not force
-                        else target_txt
-                    )
-                    save_binary(resp_txt.content, path_txt)
-                else:
-                    log(
-                        f"mCSM direct download not available for job {job_id} (status {resp_txt.status_code})"
-                    )
-            except requests.RequestException as exc:  # type: ignore[name-defined]
-                log(f"mCSM download failed for job {job_id}: {exc}")
+            save_binary(response.content, path_html)
 
 
 def format_results(results_dir: str, formatted_csv: str) -> None:
     records: List[pd.DataFrame] = []
-    paths = list(Path(results_dir).glob("mcsm_*.html")) + list(Path(results_dir).glob("mcsm_*.txt")) + list(Path(results_dir).glob("mcsm_*.csv"))
+    paths = list(Path(results_dir).glob("mcsm_*.html"))
     for path in paths:
-        if path.suffix == ".html":
-            html = path.read_text(encoding="utf-8", errors="ignore")
-            try:
-                tables = pd.read_html(StringIO(html))
-            except ValueError:
-                continue
-            if not tables:
-                continue
-            df = tables[0]
-        else:
-            try:
-                df = pd.read_csv(path, sep=None, engine="python")
-            except Exception:
-                continue
+        html = path.read_text(encoding="utf-8", errors="ignore")
+        try:
+            tables = pd.read_html(StringIO(html))
+        except ValueError:
+            continue
+        if not tables:
+            continue
+        df = tables[0]
+        # Drop index/unnamed columns
+        drop_cols = [
+            col
+            for col in df.columns
+            if (isinstance(col, str) and (col.strip().lower() == "index" or col.startswith("Unnamed")))
+        ]
+        if drop_cols:
+            df = df.drop(columns=drop_cols)
         df.insert(0, "source_file", str(path))
         records.append(df)
     if not records:
