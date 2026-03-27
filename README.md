@@ -48,9 +48,15 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - Fetch: `PYTHONPATH=src python -m psp.dynamut fetch --jobs output/dynamut_jobs.csv --results-dir results/dynamut`
 - Format: `PYTHONPATH=src python -m psp.dynamut format --results-dir results/dynamut --output output/dynamut_results.csv`
 
+### DynaMut2
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.dynamut2 submit --input input/mcsm_muts.csv --output output/dynamut2_jobs.csv`
+- Fetch: `PYTHONPATH=src python -m psp.dynamut2 fetch --jobs output/dynamut2_jobs.csv --results-dir results/dynamut2`
+- Format: `PYTHONPATH=src python -m psp.dynamut2 format --results-dir results/dynamut2 --output output/dynamut2_results.csv`
+
 ## Notes
 - PDB files are cached in `input/pdb/`; they are fetched from RCSB if missing.
 - Fetch steps skip existing result files unless `--force` is set.
 - Format steps pull the first table from each HTML result; if the upstream layout changes, adjust parsers accordingly.
 - For DynaMut, `mutation_id` is just the mutation (e.g., `F1174C`); the submitted mutation-list file has no header and one mutation per line.
 - For mCSM-NA, include `nucleic_acid_type` (dsDNA/ssDNA/RNA) in the input CSV; jobs are grouped by PDB ID and nucleic acid type. The mutation-list sent to the server has no header and one mutation per line.
+- For DynaMut2, mutation-list sent to the server has no header and one mutation per line in the form `Chain Mutation` (e.g., `A R282W`); PDB is provided as accession.

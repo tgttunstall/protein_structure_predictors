@@ -7,4 +7,5 @@ __all__ = [
     "dynamut",
     "mcsm_ppi",
     "mcsm_na",
+    "dynamut2",
 ]
