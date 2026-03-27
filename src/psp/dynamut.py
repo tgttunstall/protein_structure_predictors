@@ -61,6 +61,7 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
                     response.text,
                     SUBMIT_URL,
                     keywords=["dynamut", "prediction", "output"],
+                    response_url=response.url,
                 )
         finally:
             os.unlink(tmp_path)

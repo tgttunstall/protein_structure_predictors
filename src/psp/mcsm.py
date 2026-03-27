@@ -59,6 +59,7 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
                     SUBMIT_URL,
                     keywords=["/mcsm/output", "stability_results", "mcsm", "results_stability_prediction"],
                     path_hint="results_stability_prediction",
+                    response_url=response.url,
                 )
         finally:
             os.unlink(tmp_path)

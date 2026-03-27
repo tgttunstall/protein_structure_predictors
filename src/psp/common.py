@@ -111,7 +111,15 @@ def extract_job_url_and_id(
     base_url: str,
     keywords: Optional[List[str]] = None,
     path_hint: Optional[str] = None,
+    response_url: Optional[str] = None,
 ) -> Tuple[str, str]:
+    # 0) If response_url already looks like a job URL, prefer it
+    if response_url:
+        parsed = requests.utils.urlparse(response_url)
+        job_id = Path(parsed.path).name
+        if job_id:
+            return response_url, job_id
+
     def _to_abs(href: str) -> str:
         return requests.compat.urljoin(base_url, href)
 

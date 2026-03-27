@@ -57,6 +57,7 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
             response.text,
             SUBMIT_URL,
             keywords=["mcsm_lig/output", "mcsm_lig", "prediction"],
+            response_url=response.url,
         )
 
         record = {**{field: row[field] for field in REQUIRED_FIELDS}, "job_id": job_id, "job_url": job_url_abs}
