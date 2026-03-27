@@ -1,0 +1,44 @@
+# Protein Structure Predictor Wrappers
+
+Python wrappers for submitting protein mutation jobs to mCSM, mCSM-LIG, and DynaMut, then fetching and formatting results.
+
+## Setup
+
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Project directories (created already): `input/`, `input/pdb/`, `output/`, `results/`.
+
+## Input schema
+
+Base columns (all tools): `mutation_id`, `gene`, `pdb_id`, `chain`, `residue_number`, `wt_aa`, `mut_aa`.
+
+Additional columns per tool:
+- mCSM-LIG: `ligand_id`, `wt_affinity` (nM)
+
+## Usage
+
+Run commands with `PYTHONPATH=src` (or install the package).
+
+### mCSM
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input input/mutations.csv --output output/mcsm_jobs.csv --pdb-dir input/pdb`
+- Fetch results: `PYTHONPATH=src python -m psp.mcsm fetch --jobs output/mcsm_jobs.csv --results-dir results/mcsm`
+- Format to CSV: `PYTHONPATH=src python -m psp.mcsm format --results-dir results/mcsm --output output/mcsm_results.csv`
+
+### mCSM-LIG
+- Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input input/mutations_lig.csv --output output/mcsm_lig_jobs.csv --pdb-dir input/pdb`
+- Fetch: `PYTHONPATH=src python -m psp.mcsm_lig fetch --jobs output/mcsm_lig_jobs.csv --results-dir results/mcsm_lig`
+- Format: `PYTHONPATH=src python -m psp.mcsm_lig format --results-dir results/mcsm_lig --output output/mcsm_lig_results.csv`
+
+### DynaMut
+- Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input input/mutations.csv --output output/dynamut_jobs.csv --pdb-dir input/pdb`
+- Fetch: `PYTHONPATH=src python -m psp.dynamut fetch --jobs output/dynamut_jobs.csv --results-dir results/dynamut`
+- Format: `PYTHONPATH=src python -m psp.dynamut format --results-dir results/dynamut --output output/dynamut_results.csv`
+
+## Notes
+- PDB files are cached in `input/pdb/`; they are fetched from RCSB if missing.
+- Fetch steps skip existing result files unless `--force` is set.
+- Format steps pull the first table from each HTML result; if the upstream layout changes, adjust parsers accordingly.
