@@ -10,9 +10,10 @@ import pandas as pd
 from .common import (
     INPUT_FIELDS,
     download_pdb,
-    find_first_link,
+    extract_job_url_and_id,
     get_session,
     load_mutations,
+    log,
     save_binary,
     unique_path,
     write_rows,
@@ -37,7 +38,11 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
 
     from tempfile import NamedTemporaryFile
 
-    for (pdb_id, chain), mutations in grouped.items():
+    total = len(grouped)
+    for idx, ((pdb_id, chain), mutations) in enumerate(grouped.items(), start=1):
+        log(
+            f"Submitting DynaMut job {idx}/{total} for PDB {pdb_id} chain {chain} ({len(mutations)} mutations)"
+        )
         pdb_path = download_pdb(pdb_id, pdb_dir)
         mutation_lines = "\n".join(build_mutation(m) for m in mutations)
 
@@ -52,14 +57,11 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
                 files = {"wild": pdb_file, "mutation_list": mutation_file}
                 response = session.post(SUBMIT_URL, data=data, files=files, timeout=60)
                 response.raise_for_status()
-                job_url = find_first_link(
+                job_url_abs, job_id = extract_job_url_and_id(
                     response.text,
+                    SUBMIT_URL,
                     keywords=["dynamut", "prediction", "output"],
                 )
-                if not job_url:
-                    raise RuntimeError("Could not locate job URL in DynaMut response")
-                job_url_abs = urljoin(SUBMIT_URL, job_url)
-                job_id = job_url_abs.rstrip("/").split("/")[-1]
         finally:
             os.unlink(tmp_path)
 
@@ -88,6 +90,7 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
         target = Path(results_dir) / f"dynamut_{job_id}.html"
         if target.exists() and not force:
             continue
+        log(f"Fetching DynaMut job {job_id}")
         response = session.get(row["job_url"], timeout=60)
         response.raise_for_status()
         path = unique_path(results_dir, f"dynamut_{job_id}", ".html") if target.exists() and not force else target

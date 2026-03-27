@@ -9,9 +9,10 @@ import pandas as pd
 from .common import (
     INPUT_FIELDS,
     download_pdb,
-    find_first_link,
+    extract_job_url_and_id,
     get_session,
     load_mutations,
+    log,
     save_binary,
     unique_path,
     write_rows,
@@ -34,7 +35,10 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
     session = get_session()
     records: List[Dict[str, str]] = []
 
-    for row in rows:
+    for idx, row in enumerate(rows, start=1):
+        log(
+            f"Submitting mCSM-LIG job {idx}/{len(rows)} for mutation {row['wt_aa']}{row['residue_number']}{row['mut_aa']}"
+        )
         pdb_path = download_pdb(row["pdb_id"], pdb_dir)
         mutation = f"{row['wt_aa'].strip()}{row['residue_number'].strip()}{row['mut_aa'].strip()}"
         data = {
@@ -49,14 +53,11 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
             files = {"wild": pdb_file}
             response = session.post(SUBMIT_URL, data=data, files=files, timeout=60)
             response.raise_for_status()
-        job_url = find_first_link(
+        job_url_abs, job_id = extract_job_url_and_id(
             response.text,
+            SUBMIT_URL,
             keywords=["mcsm_lig/output", "mcsm_lig", "prediction"],
         )
-        if not job_url:
-            raise RuntimeError("Could not locate job URL in mCSM-LIG response")
-        job_url_abs = urljoin(SUBMIT_URL, job_url)
-        job_id = job_url_abs.rstrip("/").split("/")[-1]
 
         record = {**{field: row[field] for field in REQUIRED_FIELDS}, "job_id": job_id, "job_url": job_url_abs}
         records.append(record)
@@ -78,6 +79,7 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
         target = Path(results_dir) / f"mcsm_lig_{job_id}.html"
         if target.exists() and not force:
             continue
+        log(f"Fetching mCSM-LIG job {job_id}")
         response = session.get(row["job_url"], timeout=60)
         response.raise_for_status()
         path = unique_path(results_dir, f"mcsm_lig_{job_id}", ".html") if target.exists() and not force else target

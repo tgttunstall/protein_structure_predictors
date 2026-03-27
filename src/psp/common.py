@@ -1,7 +1,8 @@
 import csv
 import os
+import re
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -103,3 +104,27 @@ def save_binary(content: bytes, path: Path) -> str:
     ensure_dir(str(path.parent))
     path.write_bytes(content)
     return str(path)
+
+
+def extract_job_url_and_id(
+    html: str, base_url: str, keywords: Optional[List[str]] = None
+) -> Tuple[str, str]:
+    link = find_first_link(html, keywords=keywords)
+    if link:
+        abs_url = requests.compat.urljoin(base_url, link)
+        job_id = Path(requests.utils.urlparse(abs_url).path).name
+        if job_id:
+            return abs_url, job_id
+
+    # Fallback: try to scrape a Job ID text pattern
+    match = re.search(r"Job ID[:\s]*([A-Za-z0-9_-]+)", html, flags=re.IGNORECASE)
+    if match:
+        job_id = match.group(1)
+        abs_url = requests.compat.urljoin(base_url, f"{job_id}")
+        return abs_url, job_id
+
+    raise RuntimeError("Could not locate job URL/ID in response")
+
+
+def log(msg: str) -> None:
+    print(f"[psp] {msg}")
