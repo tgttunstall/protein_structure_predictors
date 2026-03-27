@@ -1,0 +1,8 @@
+SPEC.md
+__pycache__/
+*.pyc
+.pytest_cache/
+input/pdb/
+output/
+results/
+*.lock
