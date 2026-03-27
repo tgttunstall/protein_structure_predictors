@@ -1,0 +1,2 @@
+mutation_id,gene,pdb_id,chain,residue_number,wt_aa,mut_aa,ligand_id,wt_affinity
+A_D30N,gagpol,2Z4O,A,30,D,N,065,0.270
