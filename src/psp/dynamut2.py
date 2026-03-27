@@ -70,8 +70,12 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
     write_rows(output_csv, INPUT_FIELDS + ["job_id", "job_url"], records)
 
 
-def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
+def fetch_jobs(
+    output_csv: str, results_dir: str, force: bool = False, max_attempts: int = 6, wait_seconds: int = 30
+) -> None:
     import csv
+    import time
+    from bs4 import BeautifulSoup
 
     with open(output_csv, newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -81,20 +85,56 @@ def fetch_jobs(output_csv: str, results_dir: str, force: bool = False) -> None:
 
     session = get_session()
 
+    seen: set[str] = set()
+
     for row in rows:
         job_id = row.get("job_id") or Path(row["job_url"]).name
+        if job_id in seen and not force:
+            continue
+        seen.add(job_id)
         target = Path(results_dir) / f"dynamut2_{job_id}.html"
         if target.exists() and not force:
             continue
-        log(f"Fetching DynaMut2 job {job_id}")
-        response = session.get(row["job_url"], timeout=60)
-        response.raise_for_status()
+
+        content = None
+        url = row["job_url"]
+
+        for attempt in range(1, max_attempts + 1):
+            log(f"Fetching DynaMut2 job {job_id} (attempt {attempt}/{max_attempts})")
+            response = session.get(url, timeout=60)
+            response.raise_for_status()
+            html = response.text
+            lower = html.lower()
+
+            soup = BeautifulSoup(html, "html.parser")
+            # Follow meta refresh if present
+            refresh = soup.find("meta", attrs={"http-equiv": "refresh"})
+            if refresh and "content" in refresh.attrs:
+                parts = refresh["content"].split(";")
+                for part in parts:
+                    if "url=" in part.lower():
+                        next_url = part.split("=", 1)[1].strip()
+                        url = urljoin(response.url, next_url)
+                        break
+
+            processing = ("preloader-wrapper" in lower) or ("processing" in lower)
+            if processing and attempt < max_attempts:
+                time.sleep(wait_seconds)
+                continue
+
+            content = response.content
+            break
+
+        if content is None:
+            log(f"Failed to retrieve completed results for job {job_id}")
+            continue
+
         path = (
             unique_path(results_dir, f"dynamut2_{job_id}", ".html")
             if target.exists() and not force
             else target
         )
-        save_binary(response.content, path)
+        save_binary(content, path)
 
 
 def format_results(results_dir: str, formatted_csv: str) -> None:
@@ -139,6 +179,8 @@ def build_parser() -> argparse.ArgumentParser:
     fetch_p.add_argument("--jobs", required=True, help="Job CSV from submit step")
     fetch_p.add_argument("--results-dir", default="results/dynamut2", help="Directory to store HTML results")
     fetch_p.add_argument("--force", action="store_true", help="Overwrite existing result files")
+    fetch_p.add_argument("--max-attempts", type=int, default=6, help="Max attempts while job processes")
+    fetch_p.add_argument("--wait-seconds", type=int, default=30, help="Seconds to wait between attempts")
 
     format_p = sub.add_parser("format", help="Format downloaded results to CSV")
     format_p.add_argument("--results-dir", default="results/dynamut2", help="Directory containing result HTML files")
@@ -154,7 +196,13 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
     if args.command == "submit":
         submit(args.input, args.output, args.pdb_dir)
     elif args.command == "fetch":
-        fetch_jobs(args.jobs, args.results_dir, force=args.force)
+        fetch_jobs(
+            args.jobs,
+            args.results_dir,
+            force=args.force,
+            max_attempts=args.max_attempts,
+            wait_seconds=args.wait_seconds,
+        )
     elif args.command == "format":
         format_results(args.results_dir, args.output)
     else:
