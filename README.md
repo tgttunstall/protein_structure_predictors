@@ -28,6 +28,11 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - Fetch results: `PYTHONPATH=src python -m psp.mcsm fetch --jobs output/mcsm_jobs.csv --results-dir results/mcsm`
 - Format to CSV: `PYTHONPATH=src python -m psp.mcsm format --results-dir results/mcsm --output output/mcsm_results.csv`
 
+### mCSM-PPI
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm_ppi submit --input input/mcsm_muts.csv --output output/mcsm_ppi_jobs.csv --pdb-dir input/pdb`
+- Fetch results: `PYTHONPATH=src python -m psp.mcsm_ppi fetch --jobs output/mcsm_ppi_jobs.csv --results-dir results/mcsm_ppi`
+- Format to CSV: `PYTHONPATH=src python -m psp.mcsm_ppi format --results-dir results/mcsm_ppi --output output/mcsm_ppi_results.csv`
+
 ### mCSM-LIG
 - Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input input/mcsm_lig_muts.csv --output output/mcsm_lig_jobs.csv --pdb-dir input/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.mcsm_lig fetch --jobs output/mcsm_lig_jobs.csv --results-dir results/mcsm_lig`
