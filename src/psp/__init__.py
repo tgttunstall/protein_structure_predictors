@@ -3,4 +3,5 @@
 __all__ = [
     "common",
     "mcsm",
+    "mcsm_lig",
 ]
