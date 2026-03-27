@@ -6,6 +6,7 @@ from typing import Dict, Iterable, List, Optional
 from urllib.parse import urljoin
 
 import pandas as pd
+from io import StringIO
 import requests
 
 from .common import (
@@ -151,7 +152,7 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
         if path.suffix == ".html":
             html = path.read_text(encoding="utf-8", errors="ignore")
             try:
-                tables = pd.read_html(html)
+                tables = pd.read_html(StringIO(html))
             except ValueError:
                 continue
             if not tables:

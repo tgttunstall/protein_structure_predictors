@@ -7,6 +7,7 @@ from typing import Dict, Iterable, List, Tuple
 from urllib.parse import urljoin
 
 import pandas as pd
+from io import StringIO
 
 from .common import (
     INPUT_FIELDS,
@@ -122,7 +123,7 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
     for path in Path(results_dir).glob("dynamut_*.html"):
         html = path.read_text(encoding="utf-8", errors="ignore")
         try:
-            tables = pd.read_html(html)
+            tables = pd.read_html(StringIO(html))
         except ValueError:
             continue
         if not tables:

@@ -5,6 +5,7 @@ from typing import Dict, Iterable, List, Optional
 from urllib.parse import urljoin
 
 import pandas as pd
+from io import StringIO
 from bs4 import BeautifulSoup
 
 from .common import (
@@ -97,7 +98,7 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
 
         # First try tables
         try:
-            tables = pd.read_html(html)
+            tables = pd.read_html(StringIO(html))
             if tables:
                 df = tables[0]
                 df.insert(0, "source_file", str(path))
