@@ -1,7 +1,7 @@
 import argparse
 import csv
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 from urllib.parse import urljoin
 
 import pandas as pd
@@ -111,6 +111,16 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
 
         # Fallback: manual parse of key fields
         soup = BeautifulSoup(html, "html.parser")
+
+        def parse_float(text: str) -> Optional[float]:
+            if text is None:
+                return None
+            cleaned = text.replace("\u2212", "-").replace("±", "")
+            try:
+                return float(cleaned.split()[0])
+            except Exception:
+                return None
+
         text_sections = {}
         for i_tag in soup.find_all("i"):
             label = (i_tag.get_text(strip=True).rstrip(":") or "").lower()
@@ -121,18 +131,15 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
         # Predicted affinity change line
         pac_value = None
         pac_outcome = None
-        font = soup.find("font", string=lambda s: s and "log(affinity" in s)
-        if font:
+        for font in soup.find_all("font"):
             text = font.get_text(" ", strip=True)
-            # Example: "-2.056 log(affinity fold change) - Destabilizing"
-            parts = text.split("log(")
-            if parts:
-                try:
-                    pac_value = float(parts[0].strip().split()[0])
-                except Exception:
-                    pac_value = None
-            if "-" in text:
-                pac_outcome = text.split("-")[-1].strip()
+            if "affinity fold change" in text:
+                parts = text.split("log(")
+                if parts:
+                    pac_value = parse_float(parts[0].strip())
+                if "-" in text:
+                    pac_outcome = text.split("-")[-1].strip()
+                break
 
         record = {
             "source_file": str(path),
@@ -143,8 +150,12 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
             "mutant_type": text_sections.get("mutant-type"),
             "chain": text_sections.get("chain"),
             "ligand_id": text_sections.get("ligand id"),
-            "distance_to_ligand_ang": text_sections.get("distance to ligand"),
-            "duet_stability_change": text_sections.get("duet stability change"),
+            "distance_to_ligand_ang": parse_float(text_sections.get("distance to ligand"))
+            if text_sections.get("distance to ligand")
+            else text_sections.get("distance to ligand"),
+            "duet_stability_change": parse_float(text_sections.get("duet stability change"))
+            if text_sections.get("duet stability change")
+            else text_sections.get("duet stability change"),
         }
 
         if any(v is not None for v in record.values() if v != str(path)):
