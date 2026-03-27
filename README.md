@@ -56,6 +56,9 @@ Run commands with `PYTHONPATH=src` (or install the package).
 - Fetch: `PYTHONPATH=src python -m psp.dynamut2 fetch --jobs output/dynamut2_jobs.csv --results-dir results/dynamut2`
 - Format: `PYTHONPATH=src python -m psp.dynamut2 format --results-dir results/dynamut2 --output output/dynamut2_results.csv`
 
+### FoldX (WIP)
+- Placeholder wrapper; requires local FoldX5 installation. Submit/fetch/format commands currently raise a WIP error until migrated from the legacy workflow.
+
 ## Notes
 - PDB files are cached in `input/pdb/`; they are fetched from RCSB if missing.
 - Fetch steps skip existing result files unless `--force` is set.

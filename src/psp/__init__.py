@@ -8,4 +8,5 @@ __all__ = [
     "mcsm_ppi",
     "mcsm_na",
     "dynamut2",
+    "foldx",
 ]
