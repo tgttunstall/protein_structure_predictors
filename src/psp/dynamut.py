@@ -129,6 +129,17 @@ def format_results(results_dir: str, formatted_csv: str) -> None:
         if not tables:
             continue
         df = tables[0]
+        # Drop index-like columns
+        drop_cols = [
+            col
+            for col in df.columns
+            if (
+                (isinstance(col, str) and (col.strip() in {"#", "Index"} or col.startswith("Unnamed")))
+                or (not isinstance(col, str) and str(col).startswith("Unnamed"))
+            )
+        ]
+        if drop_cols:
+            df = df.drop(columns=drop_cols)
         df.insert(0, "source_file", str(path))
         frames.append(df)
     if not frames:
