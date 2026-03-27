@@ -7,8 +7,11 @@ Python wrappers for submitting protein mutation jobs to mCSM, mCSM-LIG, and Dyna
 ## Setup
 
 ```
-python -m venv .venv
-source .venv/bin/activate
+# create venv (example name)
+python -m venv psp_env
+# activate
+source psp_env/bin/activate
+# install deps
 pip install -r requirements.txt
 ```
 
