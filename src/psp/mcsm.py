@@ -57,7 +57,8 @@ def submit(input_csv: str, output_csv: str, pdb_dir: str) -> None:
                 job_url_abs, job_id = extract_job_url_and_id(
                     response.text,
                     SUBMIT_URL,
-                    keywords=["/mcsm/output", "stability_results", "mcsm"],
+                    keywords=["/mcsm/output", "stability_results", "mcsm", "results_stability_prediction"],
+                    path_hint="results_stability_prediction",
                 )
         finally:
             os.unlink(tmp_path)

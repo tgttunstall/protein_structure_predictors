@@ -107,20 +107,55 @@ def save_binary(content: bytes, path: Path) -> str:
 
 
 def extract_job_url_and_id(
-    html: str, base_url: str, keywords: Optional[List[str]] = None
+    html: str,
+    base_url: str,
+    keywords: Optional[List[str]] = None,
+    path_hint: Optional[str] = None,
 ) -> Tuple[str, str]:
+    def _to_abs(href: str) -> str:
+        return requests.compat.urljoin(base_url, href)
+
+    # 1) Prefer anchor tag links filtered by keywords/path_hint
     link = find_first_link(html, keywords=keywords)
     if link:
-        abs_url = requests.compat.urljoin(base_url, link)
+        abs_url = _to_abs(link)
         job_id = Path(requests.utils.urlparse(abs_url).path).name
         if job_id:
             return abs_url, job_id
 
-    # Fallback: try to scrape a Job ID text pattern
-    match = re.search(r"Job ID[:\s]*([A-Za-z0-9_-]+)", html, flags=re.IGNORECASE)
+    # 2) Regex search for URLs in the HTML
+    url_regex = re.compile(r"https?://[^\s\"']+", re.IGNORECASE)
+    candidates = url_regex.findall(html)
+    if path_hint:
+        candidates = [c for c in candidates if path_hint in c]
+    if keywords and candidates:
+        candidates = [c for c in candidates if any(k in c for k in keywords)] or candidates
+    if candidates:
+        abs_url = candidates[0]
+        job_id = Path(requests.utils.urlparse(abs_url).path).name
+        if job_id:
+            return abs_url, job_id
+
+    # 3) Regex search for likely path with a job identifier
+    path_regex = re.compile(r"/(?:[A-Za-z0-9_\-]+/)*([A-Za-z0-9_.-]+)")
+    path_candidates = []
+    if path_hint:
+        hint_regex = re.compile(rf"/(?:[A-Za-z0-9_\-]+/)*{re.escape(path_hint)}[^\s\"']*", re.IGNORECASE)
+        path_candidates = hint_regex.findall(html)
+    if not path_candidates:
+        path_candidates = path_regex.findall(html)
+    if path_candidates:
+        candidate = path_candidates[0]
+        abs_url = _to_abs(candidate)
+        job_id = Path(requests.utils.urlparse(abs_url).path).name
+        if job_id:
+            return abs_url, job_id
+
+    # 4) Fallback: try to scrape a Job ID text pattern
+    match = re.search(r"Job ID[:\s]*([A-Za-z0-9_.-]+)", html, flags=re.IGNORECASE)
     if match:
         job_id = match.group(1)
-        abs_url = requests.compat.urljoin(base_url, f"{job_id}")
+        abs_url = _to_abs(job_id)
         return abs_url, job_id
 
     raise RuntimeError("Could not locate job URL/ID in response")
