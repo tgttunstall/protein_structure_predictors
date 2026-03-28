@@ -5,6 +5,12 @@ Write a set of wrapper scripts for the following online tools:
 * mCSM
 * mCSM-LIG
 * Dynamut
+* mCSM-PPI
+* mCSM-NA
+* Dynamut2
+* Foldx5
+
+For all of these tools, a PDB file will need to be either supplied in the `input/pdb` directly, or downloaded from PDB if nonexistent.
 
 ## Submission stage
 
@@ -43,7 +49,30 @@ Notes: Only accepts a single mutation at a time, with Chain, 3-Letter ligand ID,
 URL: `https://biosig.lab.uq.edu.au/dynamut/prediction`
 Notes: Multiple mutations. Use the "Mutation List" submission method. Read the submission page thoroughly in order to determine the correct format for submission.
 
+* mCSM-PPI
+URL: `https://biosig.lab.uq.edu.au/mcsm/protein_protein`
+Notes: Accepts multiple mutations. Use the "Mutation list" submission method. Read the submission page thoroughly in order to determine the correct format for submission. The one used for mcsm stability should work.
+As an example, the results url is of the format: https://biosig.lab.uq.edu.au/mcsm/results_ppi_prediction/<job_id>
+
+* mcsm-NA
+URL: `https://biosig.lab.uq.edu.au/mcsm_na`
+Notes: Accepts multiple mutations. Use the "Mutation list" submission method. Read the submission page thoroughly in order to determine the correct format for submission. The one to use is input/mcsm_na_muts.csv. This takes an additional param called nucleic acid type which i have added at the end of the csv as a column. 
+As an example, the results url is of the format: https://biosig.lab.uq.edu.au/mcsm_na/results_prediction/<job_id>
+
+
+* Dynamut2
+URL: `https://biosig.lab.uq.edu.au/dynamut2/submit_prediction`
+Notes: Multiple mutations. Use the "Mutation List" submission method. Read the submission page thoroughly in order to determine the correct format for submission. Again the one used for mcsm stability should work. 
+As an example, the resulst url is of the format: https://biosig.lab.uq.edu.au/dynamut2/results_prediction/<job_id>
+
+* Foldx5
+Need to locally download the tool and make work.
+Bring in legacy code and keep as placeholder
+TODO: check whether it works on sample data
+
 After submitting the jobs to each tool, retrieve the Job ID and Job URL for each entry, and store these in a tool-specific CSV in the `output/` directory.
+
+
 
 ## Retrieval Stage
 
