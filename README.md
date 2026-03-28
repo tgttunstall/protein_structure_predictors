@@ -13,7 +13,7 @@ source ~/myenvs/psp_env/bin/activate
 pip install -r requirements.txt
 ```
 
-Project directories (created already): `input/`, `input/pdb/`, `output/`, `results/`.
+Directories for outputs/results are created automatically when you run the commands; you can override their paths with the CLI flags.
 
 ## Input schema
 
@@ -24,7 +24,7 @@ Additional columns per tool:
 
 ## Usage
 
-Run commands with `PYTHONPATH=src` (or install the package).
+Run commands with `PYTHONPATH=src` (or install the package). You can use the tiny fixture CSVs shown below as runnable examples; outputs/results locations are configurable and created if missing.
 
 ### mCSM
 - Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input tests/fixtures/mcsm_muts.csv --output output/mcsm_jobs.csv --pdb-dir input/pdb`
