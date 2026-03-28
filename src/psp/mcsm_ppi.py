@@ -137,7 +137,7 @@ def build_parser() -> argparse.ArgumentParser:
     submit_p = sub.add_parser("submit", help="Submit mutation list to mCSM-PPI")
     submit_p.add_argument("--input", required=True, help="Input CSV path")
     submit_p.add_argument("--output", required=True, help="Output CSV for job info")
-    submit_p.add_argument("--pdb-dir", default="input/pdb", help="Directory to cache PDB files")
+    submit_p.add_argument("--pdb-dir", default="tests/fixtures/pdb", help="Directory to cache PDB files")
 
     fetch_p = sub.add_parser("fetch", help="Fetch job results")
     fetch_p.add_argument("--jobs", required=True, help="Job CSV from submit step")

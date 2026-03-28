@@ -5,4 +5,5 @@ __pycache__/
 input/
 output/
 results/
+tests/fixtures/pdb/
 *.lock

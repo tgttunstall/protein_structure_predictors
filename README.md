@@ -28,27 +28,27 @@ Additional columns per tool:
 Run commands with `PYTHONPATH=src` (or install the package). You can use the tiny fixture CSVs shown below as runnable examples; outputs/results locations are configurable and created if missing.
 
 ### mCSM
-- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input tests/fixtures/mcsm_muts.csv --output output/mcsm_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm submit --input tests/fixtures/mcsm_muts.csv --output output/mcsm_jobs.csv --pdb-dir tests/fixtures/pdb`
 - Fetch results: `PYTHONPATH=src python -m psp.mcsm fetch --jobs output/mcsm_jobs.csv --results-dir results/mcsm`
 - Format to CSV: `PYTHONPATH=src python -m psp.mcsm format --results-dir results/mcsm --output output/mcsm_results.csv`
 
 ### mCSM-PPI
-- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm_ppi submit --input tests/fixtures/mcsm_muts.csv --output output/mcsm_ppi_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB: `PYTHONPATH=src python -m psp.mcsm_ppi submit --input tests/fixtures/mcsm_muts.csv --output output/mcsm_ppi_jobs.csv --pdb-dir tests/fixtures/pdb`
 - Fetch results: `PYTHONPATH=src python -m psp.mcsm_ppi fetch --jobs output/mcsm_ppi_jobs.csv --results-dir results/mcsm_ppi`
 - Format to CSV: `PYTHONPATH=src python -m psp.mcsm_ppi format --results-dir results/mcsm_ppi --output output/mcsm_ppi_results.csv`
 
 ### mCSM-LIG
-- Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input tests/fixtures/mcsm_lig_muts.csv --output output/mcsm_lig_jobs.csv --pdb-dir input/pdb`
+- Submit (one job per row): `PYTHONPATH=src python -m psp.mcsm_lig submit --input tests/fixtures/mcsm_lig_muts.csv --output output/mcsm_lig_jobs.csv --pdb-dir tests/fixtures/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.mcsm_lig fetch --jobs output/mcsm_lig_jobs.csv --results-dir results/mcsm_lig`
 - Format: `PYTHONPATH=src python -m psp.mcsm_lig format --results-dir results/mcsm_lig --output output/mcsm_lig_results.csv`
 
 ### mCSM-NA
-- Submit grouped by PDB and nucleic acid type: `PYTHONPATH=src python -m psp.mcsm_na submit --input tests/fixtures/mcsm_na_muts.csv --output output/mcsm_na_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB and nucleic acid type: `PYTHONPATH=src python -m psp.mcsm_na submit --input tests/fixtures/mcsm_na_muts.csv --output output/mcsm_na_jobs.csv --pdb-dir tests/fixtures/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.mcsm_na fetch --jobs output/mcsm_na_jobs.csv --results-dir results/mcsm_na`
 - Format: `PYTHONPATH=src python -m psp.mcsm_na format --results-dir results/mcsm_na --output output/mcsm_na_results.csv`
 
 ### DynaMut
-- Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input tests/fixtures/dynamut_2XB7.csv --output output/dynamut_jobs.csv --pdb-dir input/pdb`
+- Submit grouped by PDB and chain: `PYTHONPATH=src python -m psp.dynamut submit --input tests/fixtures/dynamut_2XB7.csv --output output/dynamut_jobs.csv --pdb-dir tests/fixtures/pdb`
 - Fetch: `PYTHONPATH=src python -m psp.dynamut fetch --jobs output/dynamut_jobs.csv --results-dir results/dynamut`
 - Format: `PYTHONPATH=src python -m psp.dynamut format --results-dir results/dynamut --output output/dynamut_results.csv`
 
@@ -61,12 +61,12 @@ Run commands with `PYTHONPATH=src` (or install the package). You can use the tin
 - Placeholder wrapper; requires local FoldX5 installation. Submit/fetch/format commands currently raise a WIP error until migrated from the legacy workflow.
 
 ## Notes
-- PDB files are cached in `input/pdb/`; they are fetched from RCSB if missing.
+- PDB files are cached in `tests/fixtures/pdb/` by default; they are fetched from RCSB if missing. Override with `--pdb-dir` if needed.
 - Fetch steps skip existing result files unless `--force` is set.
 - Format steps pull the first table from each HTML result; if the upstream layout changes, adjust parsers accordingly.
 - For DynaMut, `mutation_id` is just the mutation (e.g., `F1174C`); the submitted mutation-list file has no header and one mutation per line.
 - For mCSM-NA, include `nucleic_acid_type` (dsDNA/ssDNA/RNA) in the input CSV; jobs are grouped by PDB ID and nucleic acid type. The mutation-list sent to the server has no header and one mutation per line.
 - For DynaMut2, mutation-list sent to the server has no header and one mutation per line in the form `Chain Mutation` (e.g., `A R282W`); PDB is provided as accession.
-- Examples can be run using the CSVs in `tests/fixtures/`; outputs/results paths are configurable and remain untracked.
+- Examples can be run using the CSVs in `tests/fixtures/`; outputs/results paths are configurable and remain untracked. PDBs download into `tests/fixtures/pdb/` by default.
 
 > Disclaimer: This repository is an experiment to migrate and repurpose code from my PhD analyses using LLM-assisted tooling. Outputs, wrappers, and workflows are provided “as-is” for exploratory use and may evolve rapidly.
