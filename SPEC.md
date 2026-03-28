@@ -10,11 +10,11 @@ Write a set of wrapper scripts for the following online tools:
 * Dynamut2
 * Foldx5
 
-For all of these tools, a PDB file will need to be either supplied in the `input/pdb` directly, or downloaded from PDB if nonexistent.
+For all of these tools, a PDB file will need to be either supplied in the `<input_dir>/pdb` directly, or downloaded from PDB if nonexistent.
 
 ## Submission stage
 
-Each script should read from a source CSV in the `input/` directory containing the following fields:
+Each script should read from a source CSV in the `<input_dir>/` directory containing the following fields:
 
 
 mutation_id: Mutation ID
