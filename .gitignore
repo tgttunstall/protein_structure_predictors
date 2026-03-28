@@ -2,7 +2,7 @@ SPEC.md
 __pycache__/
 *.pyc
 .pytest_cache/
-input/pdb/
+input/
 output/
 results/
 *.lock
