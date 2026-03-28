@@ -1,4 +1,5 @@
 SPEC.md
+SPECIFICATION.md
 __pycache__/
 *.pyc
 .pytest_cache/
