@@ -67,6 +67,6 @@ Run commands with `PYTHONPATH=src` (or install the package). You can use the tin
 - For DynaMut, `mutation_id` is just the mutation (e.g., `F1174C`); the submitted mutation-list file has no header and one mutation per line.
 - For mCSM-NA, include `nucleic_acid_type` (dsDNA/ssDNA/RNA) in the input CSV; jobs are grouped by PDB ID and nucleic acid type. The mutation-list sent to the server has no header and one mutation per line.
 - For DynaMut2, mutation-list sent to the server has no header and one mutation per line in the form `Chain Mutation` (e.g., `A R282W`); PDB is provided as accession.
-- Example schemas live in `tests/fixtures/`; real runs use `input/` CSVs (ignored by git). Outputs/results remain untracked.
+- You can run the examples using the CSVs in `tests/fixtures/`; outputs/results paths are configurable and remain untracked.
 
 > Disclaimer: This repository is an experiment to migrate and repurpose code from my PhD analyses using LLM-assisted tooling. Outputs, wrappers, and workflows are provided “as-is” for exploratory use and may evolve rapidly.
