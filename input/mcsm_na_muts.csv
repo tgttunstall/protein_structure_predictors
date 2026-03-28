@@ -1,3 +1,0 @@
-mutation_id,gene,pdb_id,chain,residue_number,wt_aa,mut_aa,nucleic_acid_type
-A K133W,EGR1,1AAY,A,133,K,W,dsDNA
-A H149F,EGR1,1AAY,A,149,H,F,dsDNA
