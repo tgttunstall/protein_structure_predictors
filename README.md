@@ -21,6 +21,7 @@ Base columns (all tools): `mutation_id`, `gene`, `pdb_id`, `chain`, `residue_num
 
 Additional columns per tool:
 - mCSM-lig: `ligand_id`, `wt_affinity` (nM)
+- mCSM-NA: `nucleic_acid_type` (one of dsDNA, ssDNA, RNA)
 
 ## Usage
 
